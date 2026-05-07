@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -6489,11 +6489,17 @@
         setTimeout(() => { if (isObserver()) fitWholeMap(); }, 300);
       };
 
-      function visibleStage(task) {
+      function visibleStage(task, teamId) {
         const stage = task.stage || 'alkharj';
+        // For a specific team: Riyadh tasks only visible if that team has the pass
+        if (teamId) {
+          const team = gs.teams[teamId];
+          if (stage === 'riyadh' && !(team && team.riyadhAccess)) return false;
+          if (stage === 'alkharj' && team && team.riyadhAccess) return false;
+          return true;
+        }
+        // For observers/admin: show all once globally unlocked
         if (stage === 'riyadh' && !gs.riyadhUnlocked) return false;
-        if (gs.phase === 'riyadh' && stage !== 'riyadh') return false;
-        if (gs.phase === 'alkharj' && stage === 'riyadh') return false;
         return true;
       }
 
@@ -6537,7 +6543,7 @@
         markers.tasks = [];
         (gs.tasks || []).forEach(task => {
           if (task.status !== 'available' && task.status !== 'completed') return;
-          if (!visibleStage(task)) return;
+          if (!visibleStage(task, isTeam() ? currentRole : null)) return;
           if (isTeam() && task.failedBy?.includes(currentRole)) return;
           const ico = task.status === 'completed' ? '✓' : (task.stage === 'riyadh' ? 'R' : 'A');
           const m = L.marker([task.lat, task.lng], { icon: L.divIcon({ className: '', html: taskMarkerHtml(ico), iconSize: [32, 32], iconAnchor: [16, 16] }) }).addTo(map);
@@ -6786,7 +6792,7 @@
       };
 
       function taskListForCurrentPhase() {
-        return (gs.tasks || []).filter(t => t.status === 'available' && visibleStage(t));
+        return (gs.tasks || []).filter(t => t.status === 'available' && visibleStage(t, isTeam() ? currentRole : null));
       }
 
       renderTasksList = function () {
@@ -6917,9 +6923,11 @@
         const list = document.getElementById('shop-list'); list.innerHTML = '';
         const me = gs.teams[currentRole]; if (!me) return;
         const now = Date.now();
-        const items = [RIYADH_PASS, ...SHOP];
+        // In Al-Kharj phase, only show Riyadh Pass. Once team has pass, show full Riyadh market.
+        const inRiyadhMarket = me.riyadhAccess;
+        const items = inRiyadhMarket ? [RIYADH_PASS, ...SHOP] : [RIYADH_PASS];
         items.forEach(item => {
-          if (item.id === 'riyadh_pass' && gs.riyadhUnlocked && me.riyadhAccess) return;
+          if (item.id === 'riyadh_pass' && me.riyadhAccess) return;
           const cost = getShopCost(item.id);
           const afford = me.score >= cost;
           let active = false, btnTxt = 'شراء';
@@ -6946,6 +6954,8 @@
           me.riyadhAccess = true;
           gs.riyadhUnlocked = true;
           gs.riyadhUnlockedBy = currentRole;
+          // Phase becomes riyadh globally so admin/observers see Riyadh tasks and zone.
+          // Non-pass teams keep Al-Kharj zone because checkZone and visibleStage are now per-team.
           gs.phase = 'riyadh';
           gs.prevZoneCenter = { ...gs.zoneCenter };
           gs.prevZoneRadius = gs.zoneRadius;
@@ -6953,8 +6963,8 @@
           gs.zoneRadius = V2.MAX_R;
           gs.lastShrinkTime = Date.now();
           gs.nextShrinkTime = null;
-          addLog(`${me.name} اشترى بوابة الرياض. ظهرت منطقة الرياض ومهامها.`, currentRole, 'all');
-          popup('🛣️', 'بوابة الرياض فُتحت', 'تبدأ مؤقتات تقليص الرياض عند دخول أول فريق للزون', 'ok', me.name);
+          addLog(`${me.name} اشترى بوابة الرياض. فريق ${me.name} لديه حصانة التنقل إلى الرياض. بقية الفرق لا تزال في الخرج.`, currentRole, 'all');
+          popup('🛣️', 'بوابة الرياض فُتحت', `فريق ${me.name} لديه حصانة التنقل إلى زون الرياض. بقية الفرق تبقى في الخرج وتكمل مهامها.`, 'ok', me.name);
           saveState(); updateMarkers(); renderShop(); return;
         }
         me.score -= cost;
@@ -7146,10 +7156,26 @@
           pm.innerHTML = `أنت قريب من الرهينة (${fmtDist(dHostage)})<br><button class="m-btn m-btn-near" style="margin-top:7px;" onclick="foundHostage()">Confirm Hostage Found</button>`;
           document.body.classList.add('near-vip');
         } else { pr.style.display = 'none'; pm.style.display = 'none'; document.body.classList.remove('near-vip'); }
-        const curR = zoneCircle ? zoneCircle.getRadius() : gs.zoneRadius;
-        const curC = zoneCircle ? zoneCircle.getLatLng() : gs.zoneCenter;
+        // Non-pass teams check against Al-Kharj zone even after global phase shifts to Riyadh
+        let curR, curC;
+        if (!me.riyadhAccess && gs.phase === 'riyadh') {
+          curR = V2.ALKHARJ_R;
+          curC = L.latLng(V2.ALKHARJ.lat, V2.ALKHARJ.lng);
+        } else {
+          curR = zoneCircle ? zoneCircle.getRadius() : gs.zoneRadius;
+          curC = zoneCircle ? zoneCircle.getLatLng() : gs.zoneCenter;
+        }
         const outside = myLoc.distanceTo(curC) > curR;
         const prevOut = isOutOfZone;
+        // Riyadh Pass holders have free passage — no zone-out penalty while travelling
+        if (me.riyadhAccess && outside) {
+          isOutOfZone = false;
+          if (me.zoneWarningSince) { me.zoneWarningSince = null; saveState(); }
+          document.body.classList.remove('out-of-zone');
+          document.getElementById('out-of-zone-warning').style.display = 'none';
+          if (prevOut !== isOutOfZone) { renderTaskMarkers(); updateUI(); setTimeout(() => { if (map) map.invalidateSize(); }, 300); }
+          return;
+        }
         if (outside) {
           isOutOfZone = true;
           if (!me.zoneWarningSince) { me.zoneWarningSince = Date.now(); addLog(`${me.name} خرج من الزون. لديه 15 دقيقة للعودة.`, 'system', currentRole); }
