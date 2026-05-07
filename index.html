@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -4025,11 +4026,13 @@
     <div id="team-inputs-wrap" style="width:100%;max-width:440px;"></div>
     <div class="field-wrap" style="margin-top:8px;">
       <label class="field-label">اسم الشركة / الجهة المنظمة</label>
-      <input type="text" id="company-name" class="field-input" placeholder="Company name for copyright watermark" value="Crows">
+      <input type="text" id="company-name" class="field-input" placeholder="Company name for copyright watermark"
+        value="Crows">
     </div>
     <div class="field-wrap" style="margin-top:8px;">
       <label class="field-label">رابط شعار الشركة (اختياري)</label>
-      <input type="url" id="company-logo-url" class="field-input" placeholder="https://example.com/logo.png" value="https://www.image2url.com/r2/default/images/1777920774871-b59a2957-3d40-4699-98ef-26e623fdbe2b.png">
+      <input type="url" id="company-logo-url" class="field-input" placeholder="https://example.com/logo.png"
+        value="https://www.image2url.com/r2/default/images/1777920774871-b59a2957-3d40-4699-98ef-26e623fdbe2b.png">
     </div>
     <div class="field-wrap" style="margin-top:8px;">
       <label class="field-label">نمط الهدف</label>
@@ -4553,32 +4556,88 @@
 
   <!-- ══════════════ SCRIPTS ══════════════ -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Firebase v10 compat (global SDK — no ES module needed) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script>
-    /* ════════════════════════════════════════
-       LOCAL SYNC — localStorage + BroadcastChannel
-       Works with VS Code Live Server
-    ════════════════════════════════════════ */
-    const STORE_KEY = 'mt_state_v2';
+    /* ════════════════════════════════════════════════════════
+       FIREBASE CONFIG
+       Paste your project values below — all 7 fields required.
+       Get them from: Firebase Console → Project Settings → SDK.
+    ════════════════════════════════════════════════════════ */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOO6z7BPLgd1gYQjG7H4bovmauruSdzaY",
+      authDomain: "crowszones.firebaseapp.com",
+      databaseURL: "https://crowszones-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "crowszones",
+      storageBucket: "crowszones.firebasestorage.app",
+      messagingSenderId: "415601827644",
+      appId: "1:415601827644:web:74ad9db70509ab2d284839",
+      measurementId: "G-VS32YML38X"
+    };
+    /* ════════════════════════════════════════════════════════
+       FIREBASE REALTIME DATABASE — SYNC LAYER
+       - Single path: "sxb_game/state"
+       - One persistent onValue listener (no duplicates)
+       - onDisconnect cleans presence flag
+       - saveState() is debounced 400 ms to batch rapid writes
+         (GPS drags, shop clicks, etc.) and prevent write storms
+       - gameRef.set() returns a Promise for callers that await it
+    ════════════════════════════════════════════════════════ */
+    const DB_PATH = 'sxb_game/state';
 
-    const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('mt_sync') : null;
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const _db = firebase.database();
+    const _gameRef = _db.ref(DB_PATH);
 
-    const _listeners = [];
+    // Presence: mark this client online; clean up on disconnect
+    const _presRef = _db.ref('sxb_game/presence/' + Date.now() + '_' + Math.random().toString(36).slice(2, 7));
+    _presRef.set(true);
+    _presRef.onDisconnect().remove();
+
+    // Internal listener registry (only one active at a time)
+    let _stateListener = null;
+    let _saveDebounce = null;
+    let _pendingSave = null;
 
     const gameRef = {
-      on(e, cb) {
-        _listeners.push(cb);
-        const raw = localStorage.getItem(STORE_KEY);
-        cb({ val: () => raw ? JSON.parse(raw) : null });
+      /* Subscribe to state changes. Calling on() a second time first
+         removes the previous listener to prevent memory leaks. */
+      on(event, cb) {
+        if (_stateListener) {
+          _gameRef.off('value', _stateListener);
+          _stateListener = null;
+        }
+        _stateListener = _gameRef.on('value', snap => cb({ val: () => snap.val() }));
       },
+
+      /* Write state. Debounced: rapid calls within 400 ms are coalesced
+         into one write so Firebase isn't hammered on GPS drag events. */
       set(data) {
-        const j = JSON.stringify(data);
-        localStorage.setItem(STORE_KEY, j);
-        if (BC) BC.postMessage({ t: 'S', p: j });
+        _pendingSave = data;
+        if (_saveDebounce) return Promise.resolve();
+        _saveDebounce = setTimeout(() => {
+          const payload = _pendingSave;
+          _pendingSave = null;
+          _saveDebounce = null;
+          _gameRef.set(payload).catch(err => console.warn('[FB] write error:', err));
+        }, 400);
         return Promise.resolve();
+      },
+
+      /* Force an immediate flush (used by nuclearReset). */
+      setNow(data) {
+        clearTimeout(_saveDebounce);
+        _saveDebounce = null;
+        _pendingSave = null;
+        return _gameRef.set(data);
       }
     };
-    if (BC) BC.onmessage = e => { if (e.data?.t === 'S') { const p = JSON.parse(e.data.p); _listeners.forEach(cb => cb({ val: () => p })); } };
-    window.addEventListener('storage', e => { if (e.key === STORE_KEY && e.newValue) { const p = JSON.parse(e.newValue); _listeners.forEach(cb => cb({ val: () => p })); } });
+
+    // Boot the game once DOM is ready
+    window.addEventListener('DOMContentLoaded', function () {
+      _initGame();
+    });
 
 
 
@@ -4910,7 +4969,7 @@
       closeConfirm();
       const r = JSON.parse(JSON.stringify(DEFAULT_STATE));
       r.forceResetTrigger = Date.now() + 1000;
-      gameRef.set(r).then(() => softReset());
+      gameRef.setNow(r).then(() => softReset());
     }
 
     /* ════════════════════════════════════════
@@ -6089,12 +6148,12 @@
     }
 
     /* ════════════════════════════════════════
-       INIT
+       INIT — called on DOMContentLoaded
     ════════════════════════════════════════ */
-    window.addEventListener('DOMContentLoaded', () => {
+    function _initGame() {
       loadState();
       runStory();
-    });
+    }
   </script>
   <script>
     (() => {
