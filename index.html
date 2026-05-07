@@ -4586,7 +4586,7 @@
     ════════════════════════════════════════════════════════ */
     const DB_PATH = 'sxb_game/state';
 
-    firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.initializeApp(firebaseConfig);
     const _db = firebase.database();
     const _gameRef = _db.ref(DB_PATH);
 
@@ -4736,7 +4736,7 @@
     let selectedTask = null, waypointLine = null;
     let currentTab = 'teams'; let currentChatCh = 'global';
     let compassActive = false, newMissionType = 'location', selectedTargetMode = 'fixed';
-    let gs = {}, prevScores = {}, localLastShrink = null, localLogLen = 0, warn1min = false;
+    let gs = { status: 'setup', teams: {}, tasks: [], logs: [], hintRequests: [], signedTeams: {}, intelRequests: [], intelReplies: {} }, prevScores = {}, localLastShrink = null, localLogLen = 0, warn1min = false;
     let markers = { vip: null, teams: {}, tasks: [] };
     let unreadChat = 0;
     let intelInbox = []; // local per-session inbox
