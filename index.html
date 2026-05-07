@@ -810,150 +810,9 @@
       background: rgba(232, 48, 48, .15);
     }
 
-    /* ═══════════════════════════════
-   MAIN TOPBAR
-═══════════════════════════════ */
-    #topbar {
-      position: absolute;
-      top: 4px;
-      left: 0;
-      right: 0;
-      height: 58px;
-      z-index: 1000;
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border2);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .tb-main {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-      flex: 1;
-    }
-
-    .tb-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 120px;
-    }
-
-    .tb-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-      min-width: 100px;
-    }
-
-    .tb-center {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-    }
-
-    .tb-eyebrow {
-      font-family: var(--font-m);
-      font-size: .48rem;
-      letter-spacing: 3px;
-      color: var(--muted);
-    }
-
-    #role-title {
-      font-family: var(--font-a);
-      font-size: .8rem;
-      font-weight: 700;
-      color: var(--amber2);
-    }
-
-    #op-sid {
-      font-family: var(--font-m);
-      font-size: .5rem;
-      color: var(--dim);
-    }
-
-    #timer-hud {
-      font-family: var(--font-m);
-      font-size: 1.7rem;
-      color: var(--amber2);
-      letter-spacing: 3px;
-      text-shadow: 0 0 20px rgba(232, 160, 16, .4);
-    }
-
-    .timer-lbl {
-      font-family: var(--font-m);
-      font-size: .46rem;
-      letter-spacing: 4px;
-      color: var(--muted);
-      display: block;
-      margin-bottom: 1px;
-    }
-
-    #zone-size {
-      font-family: var(--font-m);
-      font-size: 1rem;
-      color: var(--cyan2);
-    }
-
-    .zone-lbl {
-      font-family: var(--font-m);
-      font-size: .46rem;
-      letter-spacing: 2px;
-      color: var(--muted);
-    }
-
-    #zone-countdown {
-      font-family: var(--font-m);
-      font-size: .6rem;
-      color: var(--red2);
-    }
-
-    .tb-bottom {
-      height: 18px;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 14px;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    #zone-bar-track {
-      flex: 1;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    #zone-bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, var(--red2), var(--amber), var(--cyan2));
-      transition: width 1.5s ease;
-      width: 100%;
-    }
-
-    #thermal-label {
-      font-family: var(--font-m);
-      font-size: .58rem;
-      transition: .4s;
-      display: none;
-    }
-
-    #moving-ind {
-      font-family: var(--font-m);
-      font-size: .58rem;
-      color: var(--orange2);
-      display: none;
-      animation: blink 1.8s infinite;
-      letter-spacing: 1px;
-    }
+    /* ─── TOPBAR base (overridden by V2 block below) ─── */
+    #topbar { display: flex; }
+    #zone-bar-track, #zone-bar-fill { display: none; }
 
     /* ═══════════════════════════════
    MAP
@@ -3361,7 +3220,7 @@
       --radius:   10px;
       --radius-sm: 6px;
       --console-h: min(46vh, 430px);
-      --topbar-h: 62px;
+      --topbar-h: 66px;
     }
 
     /* ── BASE ── */
@@ -3434,11 +3293,11 @@
       text-align: right;
       unicode-bidi: plaintext;
     }
-    .tb-main { direction: rtl; }
-    .tb-left, .tb-right { text-align: right; }
-    .tb-eyebrow, .timer-lbl, .zone-lbl, .sec-lbl { letter-spacing: 1px; }
+    .tb-eyebrow, .timer-lbl, .zone-lbl { letter-spacing: 1px; }
 
     /* ── TOPBAR ── */
+    :root { --topbar-h: 66px; }
+
     #topbar {
       position: fixed;
       top: 4px;
@@ -3446,12 +3305,129 @@
       right: 0;
       height: var(--topbar-h);
       z-index: 1100;
-      background: linear-gradient(90deg, rgba(7,16,40,.96), rgba(18,14,46,.94));
-      border-bottom: 1px solid rgba(73, 240, 255, .22);
-      border-radius: 0;
-      box-shadow: 0 4px 32px rgba(0,0,0,.5), 0 1px 0 rgba(73,240,255,.12);
-      backdrop-filter: blur(20px);
+      background: linear-gradient(90deg, rgba(7,16,40,.97), rgba(18,14,46,.95));
+      border-bottom: 1px solid rgba(73, 240, 255, .2);
+      box-shadow: 0 4px 28px rgba(0,0,0,.55), 0 1px 0 rgba(73,240,255,.1);
+      backdrop-filter: blur(22px);
+      /* 3-column flat layout — no nested flex-direction:column */
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      direction: rtl;
     }
+
+    /* LEFT col */
+    .tb-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      text-align: right;
+    }
+    .tb-eyebrow {
+      font-family: var(--font-m);
+      font-size: .46rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    #role-title {
+      font-family: var(--font-a);
+      font-size: .86rem;
+      font-weight: 800;
+      color: var(--amber2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+
+    /* CENTER col — timer */
+    .tb-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      /* no position:absolute anymore */
+      position: static;
+      transform: none;
+      left: auto;
+    }
+    .timer-lbl {
+      font-family: var(--font-m);
+      font-size: .42rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+    }
+    #timer-hud {
+      font-family: var(--font-m);
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--amber2);
+      letter-spacing: 3px;
+      text-shadow: 0 0 18px rgba(255,203,61,.35);
+      line-height: 1;
+    }
+
+    /* RIGHT col */
+    .tb-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 0;
+    }
+    .tb-zone-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      padding: 5px 10px;
+      border: 1px solid rgba(73,240,255,.18);
+      border-radius: var(--radius-sm);
+      background: rgba(73,240,255,.05);
+    }
+    .zone-lbl {
+      font-family: var(--font-m);
+      font-size: .42rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      line-height: 1;
+    }
+    #zone-size {
+      font-family: var(--font-m);
+      font-size: .92rem;
+      font-weight: 700;
+      color: var(--cyan2);
+      line-height: 1;
+      direction: ltr;
+    }
+    .tb-status-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-end;
+    }
+    #thermal-label {
+      font-family: var(--font-m);
+      font-size: .58rem;
+      display: none;
+      transition: .3s;
+    }
+    #moving-ind {
+      font-family: var(--font-m);
+      font-size: .54rem;
+      color: var(--orange2);
+      display: none;
+      animation: blink 1.8s infinite;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    /* remove the old .tb-bottom strip entirely */
+    .tb-bottom { display: none; }
 
     /* ── MAP WRAPPER — always respects topbar + console ── */
     #map-wrapper {
@@ -4376,29 +4352,37 @@
 
   <!-- ══════════════ TOPBAR ══════════════ -->
   <div id="topbar" style="display:none;">
-    <div class="tb-main">
-      <div class="tb-left">
-        <span class="tb-eyebrow">MYSTERY TOWN — LIVE OPS</span>
-        <span id="role-title"></span>
-        <span id="op-sid" class="tb-eyebrow" style="color:var(--dim);"></span>
-      </div>
-      <div class="tb-center">
-        <span class="timer-lbl">MISSION CLOCK</span>
-        <div id="timer-hud">00:00:00</div>
-      </div>
-      <div class="tb-right">
-        <span class="zone-lbl">ZONE RADIUS</span>
-        <span id="zone-size">15.00 <span style="font-size:.5rem;">KM</span></span>
-        <span id="zone-countdown" class="zone-lbl">--:--</span>
-        <div id="notif-wrap">
-          <button id="notif-btn" onclick="toggleNotifications()" title="Notifications">!</button>
-          <span id="notif-badge"></span>
-        </div>
-      </div>
+    <!-- ── LEFT: role info ── -->
+    <div class="tb-left">
+      <span class="tb-eyebrow">MYSTERY TOWN — LIVE OPS</span>
+      <span id="role-title"></span>
+      <span id="op-sid" style="font-family:var(--font-m);font-size:.46rem;color:var(--dim);letter-spacing:1px;"></span>
     </div>
-    <div class="tb-bottom" style="justify-content:flex-end;">
-      <div id="thermal-label"></div>
-      <div id="moving-ind">🚗 MOBILE</div>
+
+    <!-- ── CENTER: timer ── -->
+    <div class="tb-center">
+      <span class="timer-lbl">MISSION CLOCK</span>
+      <div id="timer-hud">00:00:00</div>
+    </div>
+
+    <!-- ── RIGHT: zone + status indicators + notif ── -->
+    <div class="tb-right">
+      <!-- zone block -->
+      <div class="tb-zone-block">
+        <span class="zone-lbl">ZONE</span>
+        <span id="zone-size">15.00 <span style="font-size:.46rem;">KM</span></span>
+        <span id="zone-countdown" style="font-family:var(--font-m);font-size:.58rem;color:var(--red2);line-height:1;">--:--</span>
+      </div>
+      <!-- status pills -->
+      <div class="tb-status-pills">
+        <div id="thermal-label"></div>
+        <div id="moving-ind">🚗 MOBILE</div>
+      </div>
+      <!-- notification button -->
+      <div id="notif-wrap">
+        <button id="notif-btn" onclick="toggleNotifications()" title="Notifications">🔔</button>
+        <span id="notif-badge"></span>
+      </div>
     </div>
   </div>
 
