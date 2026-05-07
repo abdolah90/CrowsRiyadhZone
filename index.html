@@ -4025,11 +4025,11 @@
     <div id="team-inputs-wrap" style="width:100%;max-width:440px;"></div>
     <div class="field-wrap" style="margin-top:8px;">
       <label class="field-label">اسم الشركة / الجهة المنظمة</label>
-      <input type="text" id="company-name" class="field-input" placeholder="Company name for copyright watermark">
+      <input type="text" id="company-name" class="field-input" placeholder="Company name for copyright watermark" value="Crows">
     </div>
     <div class="field-wrap" style="margin-top:8px;">
       <label class="field-label">رابط شعار الشركة (اختياري)</label>
-      <input type="url" id="company-logo-url" class="field-input" placeholder="https://example.com/logo.png">
+      <input type="url" id="company-logo-url" class="field-input" placeholder="https://example.com/logo.png" value="https://www.image2url.com/r2/default/images/1777920774871-b59a2957-3d40-4699-98ef-26e623fdbe2b.png">
     </div>
     <div class="field-wrap" style="margin-top:8px;">
       <label class="field-label">نمط الهدف</label>
@@ -5350,7 +5350,7 @@
         } else {
           const since = now - (gs.lastShrinkTime || now);
           if (since < ANIM_DUR) document.getElementById('zone-countdown').innerText = '⟳ تقليص...';
-          else { if (currentRole === 'vip') shrinkZone(); document.getElementById('zone-countdown').innerText = '⟳ جاري...'; }
+          else { shrinkZone(); document.getElementById('zone-countdown').innerText = '⟳ جاري...'; }
         }
       } else document.getElementById('zone-countdown').innerText = 'MIN';
 
@@ -6146,8 +6146,8 @@
         activeAnnouncement: null,
         liveEvent: null,
         doublePointsUntil: null,
-        companyName: '',
-        companyLogoUrl: '',
+        companyName: 'Crows',
+        companyLogoUrl: 'https://www.image2url.com/r2/default/images/1777920774871-b59a2957-3d40-4699-98ef-26e623fdbe2b.png',
         zoneCenter: copy(V2.ALKHARJ),
         zoneRadius: V2.ALKHARJ_R,
         prevZoneCenter: copy(V2.ALKHARJ),
@@ -6743,7 +6743,7 @@
           else {
             const since = now - (gs.lastShrinkTime || now);
             if (since < ANIM_DUR) document.getElementById('zone-countdown').innerText = 'تقليص...';
-            else { if (isMgmt()) shrinkZone(); document.getElementById('zone-countdown').innerText = 'جاري...'; }
+            else { shrinkZone(); document.getElementById('zone-countdown').innerText = 'جاري...'; }
           }
         } else {
           document.getElementById('zone-countdown').innerText = gs.zoneRadius <= V2.MIN_R ? '5 KM FINAL' : 'STANDBY';
