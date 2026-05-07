@@ -4323,6 +4323,9 @@
           <div class="sec-lbl">Market Tools Costs</div>
           <div id="market-costs-panel"></div>
           <button class="adm-btn" onclick="saveMarketCosts()">حفظ أسعار السوق</button>
+          <div class="sep"></div>
+          <div class="sec-lbl">حذف المهام</div>
+          <div id="all-tasks-mgmt"></div>
           <div id="director-only-panel" style="display:none;">
             <div class="sep"></div>
             <div class="sec-lbl">DIRECTOR POWERS</div>
@@ -6965,13 +6968,47 @@
             const team = gs.teams[sub.teamId]; if (!team) return;
             n++;
             const card = document.createElement('div'); card.className = 'ev-card';
-            card.innerHTML = `<div class="ev-team" style="color:${team.color};">◈ ${esc(team.name)}</div><div class="ev-mission">${esc(t.name)} — [${t.points} نقطة]</div><div class="ev-file">📎 ${esc(sub.proofName || 'بدون مرفق')}</div><div class="ev-actions"><button class="btn-approve" onclick="reviewTask(${t.id},'${sub.teamId}',true)">قبول</button><button class="btn-reject" onclick="reviewTask(${t.id},'${sub.teamId}',false)">رفض + تعطيل</button></div>`;
+            card.innerHTML = `<div class="ev-team" style="color:${team.color};">◈ ${esc(team.name)}</div><div class="ev-mission">${esc(t.name)} — [${t.points} نقطة]</div><div class="ev-file">📎 ${esc(sub.proofName || 'بدون مرفق')}</div><div class="ev-actions"><button class="btn-approve" onclick="reviewTask(${t.id},'${sub.teamId}',true)">قبول</button><button class="btn-reject" onclick="reviewTask(${t.id},'${sub.teamId}',false)">رفض + تعطيل</button><button class="btn-reject" style="flex:.6;" onclick="deleteTask(${t.id})">🗑 حذف</button></div>`;
             list.appendChild(card);
           });
         });
         if (!n) list.innerHTML = '<div class="empty-state">لا توجد أدلة بانتظار المراجعة</div>';
         setBadge('cmd', n);
+        renderAllTasksMgmt();
       };
+
+      window.deleteTask = function (taskId) {
+        if (!isMgmt()) return;
+        const idx = gs.tasks.findIndex(t => parseInt(t.id) === parseInt(taskId));
+        if (idx === -1) return;
+        const name = gs.tasks[idx].name;
+        // Release any team that was locked on this task
+        Object.values(gs.teams || {}).forEach(team => {
+          if (team.activeMission && parseInt(team.activeMission.id) === parseInt(taskId)) team.activeMission = null;
+          if (team.pendingApprovalTask && parseInt(team.pendingApprovalTask) === parseInt(taskId)) team.pendingApprovalTask = null;
+        });
+        gs.tasks.splice(idx, 1);
+        addLog(`${getRoleName(currentRole)} حذف المهمة: ${name}.`, currentRole, 'all');
+        toast(`تم حذف المهمة: ${name}`, '🗑', 'var(--red2)');
+        saveState();
+        renderTaskMarkers();
+        updateUI();
+      };
+
+      function renderAllTasksMgmt() {
+        const container = document.getElementById('all-tasks-mgmt'); if (!container) return;
+        container.innerHTML = '';
+        const tasks = gs.tasks || [];
+        if (!tasks.length) { container.innerHTML = '<div class="empty-state">لا توجد مهام على الخريطة</div>'; return; }
+        tasks.forEach(t => {
+          const statusColor = t.status === 'completed' ? 'var(--green2)' : t.status === 'pending' ? 'var(--purple2)' : 'var(--cyan2)';
+          const statusLabel = t.status === 'completed' ? 'مكتملة' : t.status === 'pending' ? 'بانتظار المراجعة' : 'متاحة';
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);';
+          row.innerHTML = `<div style="flex:1;min-width:0;"><div style="font-size:.82rem;font-weight:700;color:var(--bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(t.name)}</div><div style="font-family:var(--font-m);font-size:.56rem;color:${statusColor};margin-top:2px;">${statusLabel} · ${t.stage === 'riyadh' ? 'Riyadh' : 'Al-Kharj'} · ${t.points} نقطة</div></div><button onclick="deleteTask(${t.id})" style="flex-shrink:0;padding:6px 11px;background:var(--red-bg);border:1px solid var(--red2);color:var(--red2);border-radius:6px;font-size:.7rem;cursor:pointer;">🗑</button>`;
+          container.appendChild(row);
+        });
+      }
 
       function getShopCost(id) {
         const base = id === RIYADH_PASS.id ? RIYADH_PASS.cost : (SHOP.find(x => x.id === id)?.cost || 0);
