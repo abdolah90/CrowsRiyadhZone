@@ -4481,10 +4481,16 @@
             <label class="field-label">Punishment / Bonus Target</label>
             <select id="mgmt-team-target" class="field-input"></select>
           </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;">
+            <div style="flex:1;">
+              <label class="field-label">عدد النقاط</label>
+              <input id="mgmt-pts-amount" type="number" class="field-input" min="1" max="9999" value="25" style="text-align:center;">
+            </div>
+            <button class="adm-btn" style="margin-top:0;flex:1.2;" onclick="punishSelectedTeam('minus')">خصم نقاط ✗</button>
+            <button class="adm-btn go" style="margin-top:0;flex:1.2;" onclick="punishSelectedTeam('bonus')">إضافة نقاط ✓</button>
+          </div>
           <div class="adm-actions">
             <button class="adm-btn" onclick="punishSelectedTeam('hack')">تعطيل 15 دقيقة</button>
-            <button class="adm-btn" onclick="punishSelectedTeam('minus')">خصم 25 نقطة</button>
-            <button class="adm-btn" onclick="punishSelectedTeam('bonus')">+25 نقطة</button>
           </div>
           <div class="sep"></div>
           <div class="sec-lbl">Market Tools Costs</div>
@@ -4660,8 +4666,11 @@
   <!-- ══════════════ OUT OF ZONE ══════════════ -->
   <div id="out-of-zone-warning">
     <span class="ooz-title">⚠ خارج الزون</span>
-    <span class="ooz-sub">لديك 15 دقيقة للعودة داخل الدائرة قبل الاستبعاد.<br><strong
-        id="ooz-timer">15:00</strong></span>
+    <span class="ooz-sub">
+      عد فوراً — سيتم خصم نقاط ما بين (1–10) نقاط عشوائياً كل دقيقتين ما دمت خارج الدائرة.<br>
+      <strong id="ooz-timer" style="font-size:1.3rem;display:block;margin-top:6px;">--:--</strong>
+      <span id="ooz-next-penalty" style="font-family:var(--font-m);font-size:.58rem;color:rgba(255,200,200,.7);display:block;margin-top:4px;"></span>
+    </span>
   </div>
 
   <!-- ══════════════ VICTORY ══════════════ -->
@@ -6388,6 +6397,7 @@
         if (team.riyadhAccess === undefined) team.riyadhAccess = false;
         if (team.eliminated === undefined) team.eliminated = false;
         if (team.zoneWarningSince === undefined) team.zoneWarningSince = null;
+        if (team.nextZonePenalty === undefined) team.nextZonePenalty = null;
         if (team.score === undefined) team.score = 0;
       }
 
@@ -6546,7 +6556,8 @@
             warnedHack: false,
             riyadhAccess: false,
             eliminated: false,
-            zoneWarningSince: null
+            zoneWarningSince: null,
+            nextZonePenalty: null
           };
         });
         gs.tasks = [];
@@ -7331,9 +7342,10 @@
         if (!isMgmt()) return;
         const id = document.getElementById('mgmt-team-target').value;
         const team = gs.teams[id]; if (!team) return;
+        const pts = Math.max(1, parseInt(document.getElementById('mgmt-pts-amount')?.value) || 25);
         if (mode === 'hack') { team.hackedUntil = Date.now() + 15 * 60 * 1000; addLog(`${team.name} تم تعطيله 15 دقيقة من الإدارة.`, currentRole, 'all'); }
-        if (mode === 'minus') { team.score = Math.max(0, team.score - 25); addLog(`${team.name} خسر 25 نقطة بقرار الإدارة.`, currentRole, 'all'); }
-        if (mode === 'bonus') { team.score += 25; addLog(`${team.name} حصل على 25 نقطة بقرار الإدارة.`, currentRole, 'all'); }
+        if (mode === 'minus') { team.score = Math.max(0, team.score - pts); addLog(`${team.name} خسر ${pts} نقطة بقرار الإدارة.`, currentRole, 'all'); toast(`خصم ${pts} نقطة من ${team.name}`, '✗', 'var(--red2)'); }
+        if (mode === 'bonus') { team.score += pts; addLog(`${team.name} حصل على ${pts} نقطة بقرار الإدارة.`, currentRole, 'all'); toast(`+${pts} نقطة لـ ${team.name}`, '✓', 'var(--green2)'); }
         saveState();
       };
 
@@ -7441,19 +7453,61 @@
         }
         if (outside) {
           isOutOfZone = true;
-          if (!me.zoneWarningSince) { me.zoneWarningSince = Date.now(); addLog(`${me.name} خرج من الزون. لديه 15 دقيقة للعودة.`, 'system', currentRole); }
-          const left = Math.max(0, 15 * 60 * 1000 - (Date.now() - me.zoneWarningSince));
+          const nowMs = Date.now();
+          if (!me.zoneWarningSince) {
+            me.zoneWarningSince = nowMs;
+            me.nextZonePenalty  = nowMs + 2 * 60 * 1000; // first penalty after 2 min
+            me.consoleLockUntil = nowMs + 60 * 1000;     // hide console for 60 s on first exit
+            addLog(`${me.name} خرج من الزون — سيخسر نقاطاً كل دقيقتين حتى يعود.`, 'system', 'all');
+            toast('خرجت من الزون! عد فوراً أو ستخسر نقاطاً', '⚠', 'var(--red2)');
+            saveState();
+          }
+
+          // Console lock for 60 s after first exit
+          if (me.consoleLockUntil && nowMs < me.consoleLockUntil) {
+            document.body.classList.add('console-collapsed');
+          } else if (me.consoleLockUntil && nowMs >= me.consoleLockUntil) {
+            delete me.consoleLockUntil;
+          }
+
+          // Random point deduction every 2 min while outside
+          if (me.nextZonePenalty && nowMs >= me.nextZonePenalty) {
+            const penalty = Math.floor(Math.random() * 10) + 1;
+            me.score = Math.max(0, me.score - penalty);
+            me.nextZonePenalty = nowMs + 2 * 60 * 1000;
+            addLog(`${me.name} خسر ${penalty} نقطة بسبب البقاء خارج الزون.`, 'system', 'all');
+            SFX.play('warn');
+            saveState();
+          }
+
+          // Update the warning overlay
           document.body.classList.add('out-of-zone');
           document.getElementById('out-of-zone-warning').style.display = 'block';
-          document.getElementById('ooz-timer').textContent = fmtTime(left);
-          if (left <= 0 && !me.eliminated) {
+          const elapsed = nowMs - (me.zoneWarningSince || nowMs);
+          // Show time since exit (how long they've been out)
+          document.getElementById('ooz-timer').textContent = fmtTime(elapsed);
+          // Show countdown to next penalty
+          const nextPen = me.nextZonePenalty ? Math.max(0, me.nextZonePenalty - nowMs) : 0;
+          const penEl = document.getElementById('ooz-next-penalty');
+          if (penEl && me.nextZonePenalty) penEl.textContent = `الخصم القادم خلال: ${fmtTime(nextPen)}`;
+
+          if (elapsed >= 15 * 60 * 1000 && !me.eliminated) {
             me.eliminated = true;
             addLog(`${me.name} تم استبعاده بسبب البقاء خارج الزون أكثر من 15 دقيقة.`, 'system', 'all');
+            saveState();
           }
-          saveState();
         } else {
           isOutOfZone = false;
-          if (me.zoneWarningSince) { me.zoneWarningSince = null; saveState(); }
+          if (me.zoneWarningSince) {
+            delete me.nextZonePenalty;
+            delete me.consoleLockUntil;
+            me.zoneWarningSince = null;
+            document.body.classList.remove('console-collapsed');
+            const consoleBtn = document.getElementById('console-toggle-btn');
+            if (consoleBtn) consoleBtn.textContent = 'إخفاء القوائم';
+            sessionStorage.setItem('consoleCollapsed', '0');
+            saveState();
+          }
           document.body.classList.remove('out-of-zone');
           document.getElementById('out-of-zone-warning').style.display = 'none';
         }
