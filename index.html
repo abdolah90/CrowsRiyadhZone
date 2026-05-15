@@ -4855,19 +4855,20 @@
     const TEAM_COLORS = ['#4da8da', '#e2a76f', '#56b6c2', '#98c379', '#e5c07b', '#c678dd'];
 
     const SHOP = [
-      { id: 'hot_cold', name: 'الرادار الحراري', desc: 'يُظهر حرارة الهدف باستمرار', cost: 40, icon: '🌡️' },
-      { id: 'direction', name: 'البوصلة الاستخباراتية', desc: 'يُظهر اتجاه الهدف على البوصلة', cost: 10, icon: '🧭' },
-      { id: 'zone_intel', name: 'استخبارات المنطقة', desc: 'يكشف موقع التقليص الجديد القادم على الخريطة', cost: 20, icon: '🗺️' },
-      { id: 'reveal_teams', name: 'رصد الخصوم بالأقمار', desc: 'يكشف مواقع الفرق 3 دقائق', cost: 35, icon: '🛰️' },
-      { id: 'ghost_mode', name: 'بروتوكول الشبح', desc: 'تختفي عن رادارات الخصوم 5 دقائق', cost: 25, icon: '👻' },
-      { id: 'adrenaline', name: 'شحنة الأدرينالين', desc: 'مكافأة المهمة القادمة +25%', cost: 15, icon: '⚡' },
-      { id: 'decrypt', name: 'مفتاح فك التشفير', desc: 'يكشف تفاصيل مهمة بدون الاقتراب', cost: 30, icon: '🔑' },
-      { id: 'emp', name: 'قنبلة EMP', desc: 'يوقف فريق مختار 3 دقائق', cost: 45, icon: '💥' },
-      { id: 'bribe', name: 'تشويش الظل', desc: 'يسرق 20 نقطة من فريق مختار', cost: 50, icon: '💰' },
-      { id: 'fake_intel', name: 'معلومات مضللة', desc: 'يرسل موقع خاطئ لفريق مختار', cost: 20, icon: '📄' },
-      { id: 'scan', name: 'مسح ميداني', desc: 'يُظهر عدد مهام كل فريق', cost: 15, icon: '📡' },
-      { id: 'ask_location', name: 'طلب معلومة عن الرهينة', desc: 'ترسل طلباً للـ Director — يرد بمعلومة أو دليل يصلك مباشرة', cost: 30, icon: '📩' },
-      { id: 'time_extend', name: 'تمديد وقت المهمة', desc: 'يضيف 5 دقائق للمهمة القادمة', cost: 25, icon: '⏱️' },
+      { id: 'direction',    name: 'البوصلة',             desc: 'سهم اتجاه نحو الرهينة — ينتهي بعد دقيقتين، قابل للتجديد',           cost: 20,  icon: '🧭' },
+      { id: 'hot_cold',     name: 'النبضة الحرارية',     desc: 'قراءة حار/بارد لمدة 3 دقائق ثم ينتهي، قابل للتجديد',               cost: 35,  icon: '🌡️' },
+      { id: 'pinpoint',     name: 'بصمة الإحداثيات',     desc: 'موقع الرهينة الدقيق يومض على خريطتك 15 ثانية فقط، قابل للتجديد',   cost: 110, icon: '📍' },
+      { id: 'zone_intel',   name: 'استخبارات الزون',     desc: 'معاينة مركز التقليص القادم لمدة 30 ثانية — مرة واحدة',              cost: 25,  icon: '🗺️' },
+      { id: 'reveal_teams', name: 'مسح بالأقمار',        desc: 'مواقع الفرق المنافسة مرئية على خريطتك 2 دقيقة',                    cost: 45,  icon: '🛰️' },
+      { id: 'scan',         name: 'مسح ميداني',          desc: 'لقطة فورية لعدد مهام كل فريق المنجزة',                              cost: 15,  icon: '📡' },
+      { id: 'ghost_mode',   name: 'الشبح',               desc: 'تختفي عن رادارات الخصوم 3 دقائق',                                   cost: 30,  icon: '👻' },
+      { id: 'emp',          name: 'EMP',                  desc: 'يجمّد فريقاً مختاراً 3 دقائق (لا يستطيع فتح مهام)',                 cost: 55,  icon: '💥' },
+      { id: 'bribe',        name: 'رشوة الموتشادو',      desc: 'يسرق 20 نقطة من الفريق الأعلى نقاطاً',                             cost: 65,  icon: '💰' },
+      { id: 'fake_intel',   name: 'معلومات مضللة',       desc: 'يرسل بينج رهينة مزيف لفريق مختار (3 دقائق)',                       cost: 30,  icon: '📄' },
+      { id: 'adrenaline',   name: 'شحنة أدرينالين',      desc: 'المهمة القادمة المعتمدة تكسب +25% — مرة واحدة',                    cost: 20,  icon: '⚡' },
+      { id: 'decrypt',      name: 'فك التشفير',           desc: 'يكشف تفاصيل مهمة واحدة مختارة — مرة واحدة',                       cost: 30,  icon: '🔑' },
+      { id: 'time_extend',  name: 'تمديد الوقت',         desc: 'المهمة القادمة تصبح 15 دقيقة بدلاً من 10 — مرة واحدة',             cost: 25,  icon: '⏱️' },
+      { id: 'ask_location', name: 'سؤال المخطط',         desc: 'تطلب دليلاً من الخاطف — كل الفرق تُنبَّه أنك سألت',               cost: 60,  icon: '📩' },
     ];
 
     const MISSIONS_PRESET = [
@@ -5198,7 +5199,7 @@
       for (let i = 1; i <= n; i++) {
         const el = document.getElementById(`tn-${i}`);
         const name = el?.value.trim() || `فريق ${i}`;
-        gs.teams[`team${i}`] = { name, color: TEAM_COLORS[(i - 1) % TEAM_COLORS.length], lat: 24.7 + (Math.random() * .1), lng: 46.6 + (Math.random() * .1), score: 0, hackedUntil: null, activeMission: null, pendingApprovalTask: null, hasThermalRadar: false, enemyRevealEndTime: null, ghostUntil: null, hasAdrenaline: false, hasDecrypt: false, hasTimeExtend: false, compassActive: false, empUntil: null, warnedHack: false };
+        gs.teams[`team${i}`] = { name, color: TEAM_COLORS[(i - 1) % TEAM_COLORS.length], lat: 24.7 + (Math.random() * .1), lng: 46.6 + (Math.random() * .1), score: 0, hackedUntil: null, activeMission: null, pendingApprovalTask: null, hasThermalRadar: false, thermalExpiry: null, enemyRevealEndTime: null, ghostUntil: null, hasAdrenaline: false, hasDecrypt: false, hasTimeExtend: false, compassActive: false, compassExpiry: null, pinpointUntil: null, empUntil: null, warnedHack: false };
       }
       gs.tasks = MISSIONS_PRESET.map((m, i) => ({ id: Date.now() + i, name: m.name, type: m.type || 'location', puzzle: m.puzzle, answer: m.answer || '', lat: m.lat, lng: m.lng, points: m.points, status: 'available', submissions: [], failedBy: [], revealedFor: [] }));
       gs.targetMode = selectedTargetMode; gs.movingTargetMode = selectedTargetMode === 'moving';
@@ -5863,6 +5864,8 @@
     function checkMissionState(now) {
       const me = gs.teams[currentRole]; if (!me) return;
       if (me.empUntil && now >= me.empUntil) { delete me.empUntil; saveState(); }
+      if (me.compassExpiry && now >= me.compassExpiry) { me.compassActive = false; me.compassExpiry = null; compassActive = false; document.getElementById('compass-canvas').style.display = 'none'; saveState(); }
+      if (me.thermalExpiry && now >= me.thermalExpiry) { me.hasThermalRadar = false; me.thermalExpiry = null; saveState(); }
       // Hacked
       if (me.hackedUntil && now < me.hackedUntil) {
         document.body.classList.add('is-hacked');
@@ -5948,7 +5951,9 @@
       SHOP.forEach(item => {
         const afford = me.score >= item.cost;
         let active = false, btnTxt = 'شراء';
-        if (item.id === 'hot_cold' && me.hasThermalRadar) { active = true; btnTxt = 'مفعل'; }
+        if (item.id === 'hot_cold' && me.hasThermalRadar) { active = true; btnTxt = 'نشط'; }
+        if (item.id === 'direction' && me.compassActive) { active = true; btnTxt = 'نشط'; }
+        if (item.id === 'pinpoint' && me.pinpointUntil && now < me.pinpointUntil) { active = true; btnTxt = 'نشط'; }
         if (item.id === 'adrenaline' && me.hasAdrenaline) { active = true; btnTxt = 'مشحون'; }
         if (item.id === 'ghost_mode' && me.ghostUntil && now < me.ghostUntil) { active = true; btnTxt = 'نشط'; }
         if (item.id === 'reveal_teams' && me.enemyRevealEndTime && now < me.enemyRevealEndTime) { active = true; btnTxt = 'نشط'; }
@@ -5963,35 +5968,48 @@
     function buyItem(id, name, cost) {
       const me = gs.teams[currentRole]; if (me.score < cost) { toast('نقاط غير كافية!', '✗', 'var(--red2)'); return; }
       const now = Date.now(); me.score -= cost;
-      if (id === 'hot_cold') { me.hasThermalRadar = true; toast('الرادار الحراري مفعل!', '🌡️', 'var(--green2)'); renderToolsPanel(); popup('🌡️', 'الرادار الحراري مفعّل', 'ستجد نتيجته في تاب أدواتي', 'ok', 'السوق السوداء'); }
-      else if (id === 'direction') { me.compassActive = true; compassActive = true; document.getElementById('compass-canvas').style.display = 'block'; toast('البوصلة الاستخباراتية نشطة!', '🧭', 'var(--cyan2)'); renderToolsPanel(); }
+      if (id === 'hot_cold') {
+        me.hasThermalRadar = true; me.thermalExpiry = now + 3 * 60 * 1000;
+        toast('النبضة الحرارية نشطة 3 دقائق!', '🌡️', 'var(--green2)'); renderToolsPanel();
+      }
+      else if (id === 'direction') {
+        me.compassActive = true; me.compassExpiry = now + 2 * 60 * 1000; compassActive = true;
+        document.getElementById('compass-canvas').style.display = 'block';
+        toast('البوصلة نشطة 2 دقيقة!', '🧭', 'var(--cyan2)'); renderToolsPanel();
+      }
+      else if (id === 'pinpoint') {
+        if (map) {
+          const pm = L.circleMarker([gs.vip.lat, gs.vip.lng], { radius: 14, color: '#FFB830', fillColor: '#FFB830', fillOpacity: .5, weight: 3 }).addTo(map);
+          setTimeout(() => pm.remove(), 15000);
+        }
+        me.pinpointUntil = now + 15000;
+        toast('موقع الرهينة الدقيق على الخريطة — 15 ثانية!', '📍', 'var(--amber2)'); renderToolsPanel();
+      }
       else if (id === 'zone_intel') {
-        // Show next shrink zone center as a temporary circle on the map
         const t = Math.max(0, (gs.nextShrinkTime || Date.now()) - now);
         const nr = gs.zoneRadius - SHRINK_BY;
         if (map && nr >= MIN_R) {
-          // Estimate next center (near current vip, slightly shifted)
-          const nextLat = gs.vip.lat, nextLng = gs.vip.lng;
-          const previewCircle = L.circle([nextLat, nextLng], { color: '#E8A010', fillColor: '#E8A010', fillOpacity: .07, radius: nr, weight: 2, dashArray: '4,8' }).addTo(map);
-          setTimeout(() => previewCircle.remove(), 20000);
-          addIntelMsg('🗺️ موقع التقليص القادم', 'المنطقة الجديدة تمركزت على الخريطة (تختفي بعد 20 ثانية). التقليص يحدث خلال ' + fmtTime(t) + '.');
+          const previewCircle = L.circle([gs.vip.lat, gs.vip.lng], { color: '#E8A010', fillColor: '#E8A010', fillOpacity: .07, radius: nr, weight: 2, dashArray: '4,8' }).addTo(map);
+          setTimeout(() => previewCircle.remove(), 30000);
+          addIntelMsg('🗺️ موقع التقليص القادم', 'المنطقة الجديدة مرئية على الخريطة (30 ثانية). التقليص خلال ' + fmtTime(t) + '.');
         }
-        toast('تم تحديد موقع التقليص القادم على الخريطة', '🗺️', 'var(--cyan2)');
+        toast('موقع التقليص القادم على الخريطة', '🗺️', 'var(--cyan2)');
       }
       else if (id === 'reveal_teams') {
-        me.enemyRevealEndTime = now + 3 * 60 * 1000; toast('كشف الخصوم نشط 3 دقائق', '🛰️', 'var(--red2)');
-        addIntelMsg('🛰️ رصد بالأقمار', 'مواقع الفرق المنافسة مرئية لمدة 3 دقائق على الخريطة.');
+        me.enemyRevealEndTime = now + 2 * 60 * 1000; toast('كشف الخصوم نشط 2 دقيقة', '🛰️', 'var(--red2)');
+        addIntelMsg('🛰️ رصد بالأقمار', 'مواقع الفرق المنافسة مرئية لمدة دقيقتين على الخريطة.');
       }
       else if (id === 'ghost_mode') {
-        if (me.ghostUntil && now < me.ghostUntil) { toast('وضع الشبح فعال!', '👻'); me.score += cost; return; } me.ghostUntil = now + 5 * 60 * 1000; toast('وضع الشبح — غير مرئي 5 دقائق', '👻', 'var(--purple2)');
-        addIntelMsg('👻 بروتوكول الشبح', 'اختفيت عن رادارات الفرق المنافسة لمدة 5 دقائق.');
-        popup('👻', 'وضع الشبح مفعّل', 'أنت غير مرئي للخصوم 5 دقائق', 'intel', 'أدواتك');
+        if (me.ghostUntil && now < me.ghostUntil) { toast('وضع الشبح فعال!', '👻'); me.score += cost; return; }
+        me.ghostUntil = now + 3 * 60 * 1000; toast('الشبح — غير مرئي 3 دقائق', '👻', 'var(--purple2)');
+        addIntelMsg('👻 الشبح', 'اختفيت عن رادارات الفرق المنافسة لمدة 3 دقائق.');
       }
       else if (id === 'adrenaline') {
-        if (me.hasAdrenaline) { toast('الأدرينالين فعال!', '⚡'); me.score += cost; return; } me.hasAdrenaline = true; toast('شحنة أدرينالين! +25%', '⚡', 'var(--amber2)');
+        if (me.hasAdrenaline) { toast('الأدرينالين فعال!', '⚡'); me.score += cost; return; }
+        me.hasAdrenaline = true; toast('شحنة أدرينالين! +25%', '⚡', 'var(--amber2)');
         addIntelMsg('⚡ شحنة الأدرينالين', 'مكافأة مهمتك القادمة ستزيد 25% تلقائياً.');
       }
-      else if (id === 'decrypt') { me.hasDecrypt = true; toast('مفتاح فك التشفير!', '🔑', 'var(--amber2)'); }
+      else if (id === 'decrypt') { me.hasDecrypt = true; toast('فك التشفير جاهز!', '🔑', 'var(--amber2)'); }
       else if (id === 'emp') { doEMP(); me.score += cost; return; }
       else if (id === 'bribe') { doBribe(); me.score += cost; return; }
       else if (id === 'fake_intel') { doFakeIntel(); me.score += cost; return; }
@@ -6177,19 +6195,6 @@
       c.innerHTML = '';
       let hasAny = false;
 
-      // Thermal radar
-      if (me.hasThermalRadar) {
-        hasAny = true;
-        const dist = map ? L.latLng(me.lat, me.lng).distanceTo(L.latLng(gs.vip.lat, gs.vip.lng)) : 9999;
-        let txt = '--', cls = 'dimmed', icon = '🌡️';
-        if (dist < 200) { txt = '🌋 حار جداً — أنت قريب جداً!'; cls = 'hot'; }
-        else if (dist < 600) { txt = '🔥 حار — اقترب أكثر'; cls = 'hot'; }
-        else if (dist < 1500) { txt = '🌤️ دافئ — في الاتجاه الصح'; cls = 'mild'; }
-        else if (dist < 4000) { txt = '❄️ بارد — ابتعد عن المسار الحالي'; cls = 'cold'; }
-        else { txt = '🧊 بارد جداً — غيّر الاتجاه'; cls = 'dimmed'; }
-        addToolRow(c, icon, 'الرادار الحراري', `<span class="ts-val ${cls}">${txt}</span>`, 'active-green');
-      }
-
       // Compass
       if (me.compassActive) {
         hasAny = true;
@@ -6197,7 +6202,28 @@
         const dirs = ['شمال', 'شمال شرق', 'شرق', 'جنوب شرق', 'جنوب', 'جنوب غرب', 'غرب', 'شمال غرب'];
         const dir = dirs[Math.round(bear / 45) % 8];
         const dist = map ? fmtDist(L.latLng(me.lat, me.lng).distanceTo(L.latLng(gs.vip.lat, gs.vip.lng))) : '--';
-        addToolRow(c, '🧭', 'البوصلة الاستخباراتية', `<span class="ts-val green">${bear}° — ${dir} | ${dist}</span>`, 'active-cyan');
+        const rem = me.compassExpiry ? ` — ${fmtTime(Math.max(0, me.compassExpiry - now))} متبقي` : '';
+        addToolRow(c, '🧭', 'البوصلة', `<span class="ts-val green">${bear}° — ${dir} | ${dist}${rem}</span>`, 'active-cyan');
+      }
+
+      // Thermal radar
+      if (me.hasThermalRadar) {
+        hasAny = true;
+        const dist = map ? L.latLng(me.lat, me.lng).distanceTo(L.latLng(gs.vip.lat, gs.vip.lng)) : 9999;
+        let txt = '--', cls = 'dimmed';
+        if (dist < 200) { txt = '🌋 حار جداً — أنت قريب جداً!'; cls = 'hot'; }
+        else if (dist < 600) { txt = '🔥 حار — اقترب أكثر'; cls = 'hot'; }
+        else if (dist < 1500) { txt = '🌤️ دافئ — في الاتجاه الصح'; cls = 'mild'; }
+        else if (dist < 4000) { txt = '❄️ بارد — ابتعد عن المسار الحالي'; cls = 'cold'; }
+        else { txt = '🧊 بارد جداً — غيّر الاتجاه'; cls = 'dimmed'; }
+        const rem = me.thermalExpiry ? ` — ${fmtTime(Math.max(0, me.thermalExpiry - now))} متبقي` : '';
+        addToolRow(c, '🌡️', 'النبضة الحرارية', `<span class="ts-val ${cls}">${txt}${rem}</span>`, 'active-green');
+      }
+
+      // Pinpoint
+      if (me.pinpointUntil && now < me.pinpointUntil) {
+        hasAny = true;
+        addToolRow(c, '📍', 'بصمة الإحداثيات', `<span class="ts-val hot">يومض على الخريطة — ${fmtTime(me.pinpointUntil - now)} متبقي</span>`, 'active-cyan');
       }
 
       // Ghost mode
@@ -6352,10 +6378,10 @@
 
       const RIYADH_PASS = {
         id: 'riyadh_pass',
-        name: 'بوابة الرياض',
-        desc: 'يفتح مستوى الرياض ويظهر زون الرياض ومهامه للفريق الذي يشتريه أولاً',
-        cost: 120,
-        icon: '🛣️'
+        name: 'تذكرة الرياض',
+        desc: 'يفتح المرحلة الثانية (خريطة الرياض + مهامها + أدوات بريميوم) للفريق الذي يشتريها',
+        cost: 50,
+        icon: '🎫'
       };
 
       const copy = obj => JSON.parse(JSON.stringify(obj));
@@ -6546,12 +6572,15 @@
             activeMission: null,
             pendingApprovalTask: null,
             hasThermalRadar: false,
+            thermalExpiry: null,
             enemyRevealEndTime: null,
             ghostUntil: null,
             hasAdrenaline: false,
             hasDecrypt: false,
             hasTimeExtend: false,
             compassActive: false,
+            compassExpiry: null,
+            pinpointUntil: null,
             empUntil: null,
             warnedHack: false,
             riyadhAccess: false,
@@ -7205,7 +7234,9 @@
           const cost = getShopCost(item.id);
           const afford = me.score >= cost;
           let active = false, btnTxt = 'شراء';
-          if (item.id === 'hot_cold' && me.hasThermalRadar) { active = true; btnTxt = 'مفعل'; }
+          if (item.id === 'hot_cold' && me.hasThermalRadar) { active = true; btnTxt = 'نشط'; }
+          if (item.id === 'direction' && me.compassActive) { active = true; btnTxt = 'نشط'; }
+          if (item.id === 'pinpoint' && me.pinpointUntil && now < me.pinpointUntil) { active = true; btnTxt = 'نشط'; }
           if (item.id === 'adrenaline' && me.hasAdrenaline) { active = true; btnTxt = 'مشحون'; }
           if (item.id === 'ghost_mode' && me.ghostUntil && now < me.ghostUntil) { active = true; btnTxt = 'نشط'; }
           if (item.id === 'reveal_teams' && me.enemyRevealEndTime && now < me.enemyRevealEndTime) { active = true; btnTxt = 'نشط'; }
@@ -7242,13 +7273,43 @@
           saveState(); updateMarkers(); renderShop(); return;
         }
         me.score -= cost;
-        if (id === 'hot_cold') { me.hasThermalRadar = true; toast('الرادار الحراري مفعل!', '🌡️', 'var(--green2)'); renderToolsPanel(); }
-        else if (id === 'direction') { me.compassActive = true; compassActive = true; document.getElementById('compass-canvas').style.display = 'block'; toast('البوصلة نشطة!', '🧭', 'var(--cyan2)'); renderToolsPanel(); }
-        else if (id === 'zone_intel') { addIntelMsg('🗺️ حجم الزون', `نصف قطر الزون الحالي محسوب من الخريطة: ${googleMapRadiusKm()} كم.`); toast('وصلت معلومة الزون في الواردات', '🗺️', 'var(--cyan2)'); }
-        else if (id === 'reveal_teams') { me.enemyRevealEndTime = now + 3 * 60 * 1000; toast('كشف الخصوم نشط 3 دقائق', '🛰️', 'var(--red2)'); }
-        else if (id === 'ghost_mode') { me.ghostUntil = now + 5 * 60 * 1000; toast('وضع الشبح 5 دقائق', '👻', 'var(--purple2)'); }
-        else if (id === 'adrenaline') { me.hasAdrenaline = true; toast('المهمة القادمة +25%', '⚡', 'var(--amber2)'); }
-        else if (id === 'decrypt') { me.hasDecrypt = true; toast('سيعرض لك اسم المهمة والمسافة فقط. التفاصيل عند البدء.', '🔑', 'var(--amber2)'); }
+        if (id === 'hot_cold') {
+          me.hasThermalRadar = true; me.thermalExpiry = now + 3 * 60 * 1000;
+          toast('النبضة الحرارية نشطة 3 دقائق!', '🌡️', 'var(--green2)'); renderToolsPanel();
+        }
+        else if (id === 'direction') {
+          me.compassActive = true; me.compassExpiry = now + 2 * 60 * 1000; compassActive = true;
+          document.getElementById('compass-canvas').style.display = 'block';
+          toast('البوصلة نشطة 2 دقيقة!', '🧭', 'var(--cyan2)'); renderToolsPanel();
+        }
+        else if (id === 'pinpoint') {
+          if (map) {
+            const pm = L.circleMarker([gs.vip.lat, gs.vip.lng], { radius: 14, color: '#FFB830', fillColor: '#FFB830', fillOpacity: .5, weight: 3 }).addTo(map);
+            setTimeout(() => pm.remove(), 15000);
+          }
+          me.pinpointUntil = now + 15000;
+          toast('موقع الرهينة الدقيق على الخريطة — 15 ثانية!', '📍', 'var(--amber2)'); renderToolsPanel();
+        }
+        else if (id === 'zone_intel') {
+          const t = Math.max(0, (gs.nextShrinkTime || Date.now()) - now);
+          const nr = gs.zoneRadius - (typeof SHRINK_BY !== 'undefined' ? SHRINK_BY : 500);
+          if (map) {
+            const previewCircle = L.circle([gs.zoneCenter.lat, gs.zoneCenter.lng], { color: '#E8A010', fillColor: '#E8A010', fillOpacity: .07, radius: Math.max(nr, 200), weight: 2, dashArray: '4,8' }).addTo(map);
+            setTimeout(() => previewCircle.remove(), 30000);
+          }
+          addIntelMsg('🗺️ موقع التقليص القادم', 'المنطقة الجديدة مرئية على الخريطة (30 ثانية). التقليص خلال ' + fmtTime(t) + '.');
+          toast('موقع التقليص القادم على الخريطة', '🗺️', 'var(--cyan2)');
+        }
+        else if (id === 'reveal_teams') { me.enemyRevealEndTime = now + 2 * 60 * 1000; toast('كشف الخصوم نشط 2 دقيقة', '🛰️', 'var(--red2)'); }
+        else if (id === 'ghost_mode') {
+          if (me.ghostUntil && now < me.ghostUntil) { toast('وضع الشبح فعال!', '👻'); me.score += cost; return; }
+          me.ghostUntil = now + 3 * 60 * 1000; toast('الشبح — غير مرئي 3 دقائق', '👻', 'var(--purple2)');
+        }
+        else if (id === 'adrenaline') {
+          if (me.hasAdrenaline) { toast('الأدرينالين فعال!', '⚡'); me.score += cost; return; }
+          me.hasAdrenaline = true; toast('المهمة القادمة +25%', '⚡', 'var(--amber2)');
+        }
+        else if (id === 'decrypt') { me.hasDecrypt = true; toast('فك التشفير جاهز!', '🔑', 'var(--amber2)'); }
         else if (id === 'emp') { doEMP(); me.score += cost; return; }
         else if (id === 'bribe') { doBribe(); me.score += cost; return; }
         else if (id === 'fake_intel') { doFakeIntel(); me.score += cost; return; }
@@ -7525,6 +7586,8 @@
           return;
         }
         if (me.empUntil && now >= me.empUntil) { delete me.empUntil; saveState(); }
+        if (me.compassExpiry && now >= me.compassExpiry) { me.compassActive = false; me.compassExpiry = null; compassActive = false; document.getElementById('compass-canvas').style.display = 'none'; saveState(); }
+        if (me.thermalExpiry && now >= me.thermalExpiry) { me.hasThermalRadar = false; me.thermalExpiry = null; saveState(); }
         if (me.hackedUntil && now < me.hackedUntil) {
           document.body.classList.add('is-hacked');
           document.getElementById('hacked-screen').style.display = 'flex';
