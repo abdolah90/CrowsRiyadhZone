@@ -4576,8 +4576,9 @@
             onclick="submitCode()">تحقق من الرمز</button>
         </div>
         <div id="mission-photo-sec" style="margin-top:12px;">
-          <span class="mf-lbl" style="margin-bottom:6px;display:block;">إرفاق الدليل (اختياري)</span>
+          <span class="mf-lbl" style="margin-bottom:6px;display:block;">إرفاق الدليل (مطلوب للمهام البصرية)</span>
           <input type="file" id="proof-file" accept="image/*,video/*">
+          <div id="proof-upload-status" style="margin-top:8px;font-size:.72rem;color:var(--text-dim);display:none;"></div>
         </div>
       </div>
       <div class="mission-actions">
@@ -4853,6 +4854,10 @@
     const MAX_R = 25000, MIN_R = 3000, SHRINK_BY = 3500;
     const ANIM_DUR = 30000;
     const TEAM_COLORS = ['#4da8da', '#e2a76f', '#56b6c2', '#98c379', '#e5c07b', '#c678dd'];
+
+    // ── Google Drive upload via Apps Script web app ──
+    // Replace with your deployed Apps Script URL after following setup steps
+    const DRIVE_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbxn8zFPxbNi2PQYZvOf8Of7VGT_146pGwnmOkM8aKV8bsx_Mq-raF-8SKM6KvITXa1chQ/exec';
 
     const SHOP = [
       { id: 'direction',    name: 'البوصلة',             desc: 'سهم اتجاه نحو الرهينة — ينتهي بعد دقيقتين، قابل للتجديد',           cost: 20,  icon: '🧭' },
@@ -5785,24 +5790,76 @@
       hackTeam(mId);
     }
 
-    function submitProof() {
-      const me = gs.teams[currentRole]; if (!me.activeMission) return;
-      const fi = document.getElementById('proof-file');
-      const fname = fi?.files[0] ? fi.files[0].name : 'بدون مرفق';
-      const mId = me.activeMission.id; me.activeMission = null;
-      document.body.classList.remove('blur-bg');
-      document.getElementById('active-mission-overlay').style.display = 'none';
+    function _recordSubmission(mId, fname, driveUrl) {
+      const me = gs.teams[currentRole]; if (!me) return;
       const tIdx = gs.tasks.findIndex(t => parseInt(t.id) === parseInt(mId));
       if (tIdx > -1 && gs.tasks[tIdx].status === 'available') {
         gs.tasks[tIdx].status = 'pending';
         if (!gs.tasks[tIdx].submissions) gs.tasks[tIdx].submissions = [];
-        gs.tasks[tIdx].submissions.push({ teamId: currentRole, proofName: fname, status: 'pending' });
+        gs.tasks[tIdx].submissions.push({ teamId: currentRole, proofName: fname, driveUrl: driveUrl || null, status: 'pending' });
         me.pendingApprovalTask = mId;
         addLog(`📤 ${me.name} أرسل دليلاً — بانتظار المراجعة`, 'system', 'admin');
         popup('📤', `${me.name} أرسل دليل مهمة`, 'قيد المراجعة من مركز التوثيق', 'enemy', `فريق: ${me.name}`);
         toast('تم رفع الأدلة — بانتظار المراجعة', '⏳', 'var(--purple2)');
         saveState();
       }
+    }
+
+    function submitProof() {
+      const me = gs.teams[currentRole]; if (!me.activeMission) return;
+      const fi = document.getElementById('proof-file');
+      const file = fi?.files[0];
+      const mId = me.activeMission.id;
+      const task = gs.tasks.find(t => parseInt(t.id) === parseInt(mId));
+
+      // Close overlay immediately so team isn't stuck waiting
+      me.activeMission = null;
+      document.body.classList.remove('blur-bg');
+      document.getElementById('active-mission-overlay').style.display = 'none';
+
+      if (!file) {
+        _recordSubmission(mId, 'بدون مرفق', null);
+        return;
+      }
+
+      // Show upload progress in status div (visible while overlay is open — now shown as toast)
+      const statusEl = document.getElementById('proof-upload-status');
+      if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = ''; }
+      toast('جارٍ رفع الدليل إلى Drive…', '📤', 'var(--cyan2)');
+
+      const teamName = me.name.replace(/\s+/g, '_');
+      const taskName = (task?.name || 'mission').replace(/\s+/g, '_');
+      const ext = file.name.split('.').pop();
+      const fileName = `${teamName}__${taskName}__${Date.now()}.${ext}`;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64 = e.target.result.split(',')[1];
+        const payload = JSON.stringify({
+          fileName,
+          mimeType: file.type,
+          data: base64,
+          folderName: teamName
+        });
+
+        fetch(DRIVE_UPLOAD_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: payload
+        })
+          .then(r => r.json())
+          .then(res => {
+            const url = res.url || null;
+            _recordSubmission(mId, fileName, url);
+            if (url) toast('رُفع الدليل بنجاح ✓', '☁️', 'var(--green2)');
+          })
+          .catch(() => {
+            // Upload failed — still record submission with filename only
+            _recordSubmission(mId, fileName, null);
+            toast('رُفع الاسم فقط — تحقق من اتصال Drive', '⚠', 'var(--amber2)');
+          });
+      };
+      reader.readAsDataURL(file);
     }
 
     function submitCode() {
@@ -5909,7 +5966,8 @@
           const team = gs.teams[sub.teamId]; if (!team) return;
           const tm = TYPE_META[t.type] || TYPE_META.location;
           const card = document.createElement('div'); card.className = 'ev-card';
-          card.innerHTML = `<div class="ev-team" style="color:${team.color};">◈ ${team.name}</div><div class="ev-mission">${tm.emoji} ${t.name} — [${t.points} نقطة]</div><div class="ev-file">📎 ${sub.proofName || 'بدون مرفق'}</div><div class="ev-actions"><button class="btn-approve" onclick="reviewTask(${t.id},'${sub.teamId}',true)">✔ قبول</button><button class="btn-reject" onclick="reviewTask(${t.id},'${sub.teamId}',false)">✘ رفض + تهكير</button></div>`;
+          const proofLink = sub.driveUrl ? `<a href="${sub.driveUrl}" target="_blank" style="color:var(--cyan2);text-decoration:none;">☁️ فتح الدليل في Drive</a>` : `📎 ${sub.proofName || 'بدون مرفق'}`;
+          card.innerHTML = `<div class="ev-team" style="color:${team.color};">◈ ${team.name}</div><div class="ev-mission">${tm.emoji} ${t.name} — [${t.points} نقطة]</div><div class="ev-file">${proofLink}</div><div class="ev-actions"><button class="btn-approve" onclick="reviewTask(${t.id},'${sub.teamId}',true)">✔ قبول</button><button class="btn-reject" onclick="reviewTask(${t.id},'${sub.teamId}',false)">✘ رفض + تهكير</button></div>`;
           list.appendChild(card);
         });
       });
@@ -7068,7 +7126,7 @@
         if (!isTeam()) return;
         const me = gs.teams[currentRole]; if (!me) return;
         const list = document.getElementById('tasks-list'); list.innerHTML = '';
-        if (me.eliminated) { list.innerHTML = '<li class="empty-state">تم استبعاد فريقك من اللعبة</li>'; return; }
+        if (me.eliminated) { list.innerHTML = '<li class="empty-state">⚠ رصيدك النقطي صفر — أكمل مهامك لاستعادة النقاط</li>'; return; }
         const myLoc = L.latLng(me.lat, me.lng);
         const tasks = taskListForCurrentPhase()
           .filter(t => !t.failedBy || !t.failedBy.includes(currentRole))
@@ -7175,7 +7233,8 @@
             const team = gs.teams[sub.teamId]; if (!team) return;
             n++;
             const card = document.createElement('div'); card.className = 'ev-card';
-            card.innerHTML = `<div class="ev-team" style="color:${team.color};">◈ ${esc(team.name)}</div><div class="ev-mission">${esc(t.name)} — [${t.points} نقطة]</div><div class="ev-file">📎 ${esc(sub.proofName || 'بدون مرفق')}</div><div class="ev-actions"><button class="btn-approve" onclick="reviewTask(${t.id},'${sub.teamId}',true)">قبول</button><button class="btn-reject" onclick="reviewTask(${t.id},'${sub.teamId}',false)">رفض + تعطيل</button><button class="btn-reject" style="flex:.6;" onclick="deleteTask(${t.id})">🗑 حذف</button></div>`;
+            const proofLink2 = sub.driveUrl ? `<a href="${sub.driveUrl}" target="_blank" style="color:var(--cyan2);text-decoration:none;">☁️ فتح الدليل في Drive</a>` : `📎 ${esc(sub.proofName || 'بدون مرفق')}`;
+            card.innerHTML = `<div class="ev-team" style="color:${team.color};">◈ ${esc(team.name)}</div><div class="ev-mission">${esc(t.name)} — [${t.points} نقطة]</div><div class="ev-file">${proofLink2}</div><div class="ev-actions"><button class="btn-approve" onclick="reviewTask(${t.id},'${sub.teamId}',true)">قبول</button><button class="btn-reject" onclick="reviewTask(${t.id},'${sub.teamId}',false)">رفض + تعطيل</button><button class="btn-reject" style="flex:.6;" onclick="deleteTask(${t.id})">🗑 حذف</button></div>`;
             list.appendChild(card);
           });
         });
@@ -7552,11 +7611,7 @@
           const penEl = document.getElementById('ooz-next-penalty');
           if (penEl && me.nextZonePenalty) penEl.textContent = `الخصم القادم خلال: ${fmtTime(nextPen)}`;
 
-          if (elapsed >= 15 * 60 * 1000 && !me.eliminated) {
-            me.eliminated = true;
-            addLog(`${me.name} تم استبعاده بسبب البقاء خارج الزون أكثر من 15 دقيقة.`, 'system', 'all');
-            saveState();
-          }
+          // No elimination — points-only penalty system
         } else {
           isOutOfZone = false;
           if (me.zoneWarningSince) {
@@ -7577,14 +7632,6 @@
 
       checkMissionState = function (now) {
         const me = gs.teams[currentRole]; if (!me) return;
-        if (me.eliminated) {
-          document.body.classList.add('is-hacked');
-          document.getElementById('hacked-screen').style.display = 'flex';
-          document.querySelector('#hacked-screen .hack-title').textContent = 'ELIMINATED';
-          document.querySelector('#hacked-screen .hack-msg').innerHTML = 'تم استبعاد فريقك بسبب البقاء خارج الزون.';
-          document.getElementById('hacked-timer').innerText = 'OUT';
-          return;
-        }
         if (me.empUntil && now >= me.empUntil) { delete me.empUntil; saveState(); }
         if (me.compassExpiry && now >= me.compassExpiry) { me.compassActive = false; me.compassExpiry = null; compassActive = false; document.getElementById('compass-canvas').style.display = 'none'; saveState(); }
         if (me.thermalExpiry && now >= me.thermalExpiry) { me.hasThermalRadar = false; me.thermalExpiry = null; saveState(); }
